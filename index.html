@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Futsal Pro">
+<meta name="theme-color" content="#054028">
+<title>Sorteador Futsal Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --green-deep: #032b1a;
+    --green-dark: #054028;
+    --green-mid: #0a6640;
+    --green-light: #14904f;
+    --gold: #FFD700;
+    --gold-dim: rgba(255,215,0,0.15);
+    --white: #ffffff;
+    --white-60: rgba(255,255,255,0.6);
+    --white-20: rgba(255,255,255,0.2);
+    --white-10: rgba(255,255,255,0.08);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--green-deep);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--white);
+    overscroll-behavior: none;
+  }
+
+  body {
+    background:
+      radial-gradient(ellipse at 10% 0%, rgba(20,144,79,0.35) 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 100%, rgba(5,64,40,0.6) 0%, transparent 60%),
+      linear-gradient(175deg, #043520 0%, #021a0f 100%);
+    background-attachment: fixed;
+  }
+
+  /* ---- FIELD LINES DECORATION ---- */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.03) 39px, rgba(255,255,255,0.03) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.03) 39px, rgba(255,255,255,0.03) 40px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 0 40px;
+    min-height: 100vh;
+  }
+
+  /* ---- HEADER ---- */
+  .header {
+    padding: 52px 20px 28px;
+    text-align: center;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: var(--gold);
+    border-radius: 2px;
+    margin: 16px auto 0;
+  }
+  .header-sub {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--white-60);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 44px;
+    letter-spacing: 3px;
+    color: var(--white);
+    line-height: 1;
+  }
+  .header h1 span { color: var(--gold); }
+
+  /* ---- CARDS ---- */
+  .card {
+    background: var(--white-10);
+    border: 0.5px solid var(--white-20);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin: 0 16px 14px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--white-60);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--white-20);
+    border-radius: var(--radius-sm);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    padding: 12px 14px;
+    resize: none;
+    outline: none;
+    transition: border-color .2s;
+  }
+  textarea::placeholder { color: rgba(255,255,255,0.25); }
+  textarea:focus { border-color: rgba(255,215,0,0.5); }
+
+  /* ---- TIME COUNTER ---- */
+  .counter-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--white-20);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    width: fit-content;
+  }
+  .btn-cnt {
+    background: transparent;
+    border: none;
+    color: var(--gold);
+    font-size: 22px;
+    width: 52px;
+    height: 52px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s;
+    font-weight: 500;
+  }
+  .btn-cnt:active { background: rgba(255,215,0,0.1); }
+  .cnt-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--white);
+    width: 52px;
+    text-align: center;
+    letter-spacing: 1px;
+    border-left: 0.5px solid var(--white-20);
+    border-right: 0.5px solid var(--white-20);
+    line-height: 52px;
+  }
+
+  /* ---- SORTEAR BUTTON ---- */
+  .btn-main {
+    display: block;
+    width: calc(100% - 32px);
+    margin: 20px 16px 0;
+    padding: 18px;
+    background: var(--gold);
+    color: #032b1a;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    transition: transform .12s, opacity .12s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-main::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform .4s;
+  }
+  .btn-main:active { transform: scale(0.97); opacity: 0.9; }
+  .btn-main:hover::after { transform: translateX(100%); }
+
+  /* ---- RESULTS ---- */
+  #results-section { display: none; }
+
+  .btn-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: 0.5px solid var(--white-20);
+    border-radius: var(--radius-sm);
+    color: var(--white-60);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 10px 16px;
+    cursor: pointer;
+    margin: 0 16px 20px;
+    transition: border-color .2s, color .2s;
+  }
+  .btn-back:active { color: var(--white); border-color: var(--white-60); }
+
+  .result-header {
+    padding: 0 16px 16px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .result-header h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--gold);
+  }
+  .result-header span {
+    font-size: 12px;
+    color: var(--white-60);
+    letter-spacing: 1px;
+  }
+
+  .time-card {
+    margin: 0 16px 14px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 0.5px solid var(--white-20);
+    animation: slideIn .3s ease both;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .time-header {
+    padding: 14px 16px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .time-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--green-deep);
+    background: var(--gold);
+    border-radius: 6px;
+    padding: 2px 10px;
+    line-height: 1.6;
+  }
+  .time-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--white);
+  }
+  .time-count {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--white-60);
+  }
+  .time-body {
+    padding: 0 16px 14px;
+  }
+  .jogador-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 0.5px solid rgba(255,255,255,0.07);
+  }
+  .jogador-row:last-child { border-bottom: none; }
+  .jog-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 15px;
+    color: var(--white-60);
+    width: 22px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .jog-name {
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: .3px;
+  }
+
+  /* color bands per team */
+  .tc-0 { background: linear-gradient(135deg, rgba(10,102,64,0.7) 0%, rgba(5,64,40,0.5) 100%); }
+  .tc-1 { background: linear-gradient(135deg, rgba(30,80,160,0.55) 0%, rgba(15,50,110,0.4) 100%); }
+  .tc-2 { background: linear-gradient(135deg, rgba(160,30,40,0.55) 0%, rgba(100,15,20,0.4) 100%); }
+  .tc-3 { background: linear-gradient(135deg, rgba(130,60,0,0.6) 0%, rgba(80,35,0,0.4) 100%); }
+  .tc-4 { background: linear-gradient(135deg, rgba(80,0,130,0.55) 0%, rgba(50,0,90,0.4) 100%); }
+  .tc-5 { background: linear-gradient(135deg, rgba(0,110,130,0.55) 0%, rgba(0,70,90,0.4) 100%); }
+  .tc-6 { background: linear-gradient(135deg, rgba(0,100,60,0.6) 0%, rgba(0,65,40,0.4) 100%); }
+  .tc-7 { background: linear-gradient(135deg, rgba(120,120,0,0.55) 0%, rgba(80,80,0,0.4) 100%); }
+  .tc-8 { background: linear-gradient(135deg, rgba(140,20,100,0.55) 0%, rgba(90,10,65,0.4) 100%); }
+  .tc-9 { background: linear-gradient(135deg, rgba(20,120,140,0.55) 0%, rgba(10,80,100,0.4) 100%); }
+
+  .tn-0 { background: #14904f; }
+  .tn-1 { background: #1E50A0; }
+  .tn-2 { background: #A01E28; }
+  .tn-3 { background: #823C00; }
+  .tn-4 { background: #500082; }
+  .tn-5 { background: #006E82; }
+  .tn-6 { background: #00643C; }
+  .tn-7 { background: #787800; }
+  .tn-8 { background: #8C1464; }
+  .tn-9 { background: #148C8C; }
+
+  /* ---- SHARE BUTTON ---- */
+  .btn-share {
+    display: block;
+    width: calc(100% - 32px);
+    margin: 8px 16px 0;
+    padding: 16px;
+    background: var(--gold-dim);
+    border: 1px solid rgba(255,215,0,0.4);
+    border-radius: var(--radius);
+    color: var(--gold);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 19px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .btn-share:active { background: rgba(255,215,0,0.25); }
+
+  .share-feedback {
+    text-align: center;
+    font-size: 13px;
+    color: var(--gold);
+    padding: 10px 0 0;
+    min-height: 24px;
+    opacity: 0;
+    transition: opacity .3s;
+  }
+  .share-feedback.show { opacity: 1; }
+
+  /* ---- TOAST ---- */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--gold);
+    color: #032b1a;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px 24px;
+    border-radius: 30px;
+    opacity: 0;
+    transition: opacity .3s, transform .3s;
+    pointer-events: none;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---- BOTTOM SAFE AREA ---- */
+  .safe-bottom { height: env(safe-area-inset-bottom, 0px); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-sub">Futsal Pro</div>
+    <h1>SORTEADOR<br><span>DE TIMES</span></h1>
+  </div>
+
+  <!-- FORM -->
+  <div id="form-section">
+    <div class="card">
+      <label>Jogadores — um por linha</label>
+      <textarea id="nomes" rows="10" placeholder="João&#10;Pedro&#10;Lucas&#10;Gabriel&#10;Daniel&#10;Rafael&#10;..."></textarea>
+    </div>
+
+    <div class="card">
+      <label>Quantidade de times</label>
+      <div class="counter-row">
+        <button class="btn-cnt" onclick="changeNum(-1)" aria-label="Diminuir">−</button>
+        <div class="cnt-val" id="qtd-display">2</div>
+        <button class="btn-cnt" onclick="changeNum(1)" aria-label="Aumentar">+</button>
+      </div>
+    </div>
+
+    <button class="btn-main" onclick="sortear()">⚽ SORTEAR AGORA</button>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results-section">
+    <button class="btn-back" onclick="voltar()">← Novo sorteio</button>
+    <div class="result-header">
+      <h2>TIMES SORTEADOS</h2>
+      <span id="result-meta"></span>
+    </div>
+    <div id="times-container"></div>
+    <button class="btn-share" onclick="compartilhar()">📋 COPIAR PARA O GRUPO</button>
+    <div class="share-feedback" id="share-feedback">Copiado! Cole no WhatsApp 👌</div>
+  </div>
+
+  <div class="safe-bottom"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  var qtd = 2;
+  var timesAtual = [];
+
+  function changeNum(d) {
+    qtd = Math.max(2, Math.min(10, qtd + d));
+    document.getElementById('qtd-display').textContent = qtd;
+  }
+
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  }
+
+  function sortear() {
+    var txt = document.getElementById('nomes').value.trim();
+    if (!txt) { showToast('Digite os jogadores primeiro!'); return; }
+    var nomes = txt.split('\n').map(function(n){ return n.trim(); }).filter(function(n){ return n.length > 0; });
+    if (nomes.length < qtd) { showToast('Jogadores insuficientes para ' + qtd + ' times!'); return; }
+
+    // Fisher-Yates shuffle
+    for (var i = nomes.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = nomes[i]; nomes[i] = nomes[j]; nomes[j] = tmp;
+    }
+
+    var times = [];
+    for (var i = 0; i < qtd; i++) times.push([]);
+    for (var i = 0; i < nomes.length; i++) times[i % qtd].push(nomes[i]);
+    timesAtual = times;
+
+    renderTimes(times, nomes.length);
+    document.getElementById('form-section').style.display = 'none';
+    document.getElementById('results-section').style.display = 'block';
+    document.getElementById('share-feedback').classList.remove('show');
+    window.scrollTo(0, 0);
+  }
+
+  function renderTimes(times, total) {
+    var c = document.getElementById('times-container');
+    c.innerHTML = '';
+    document.getElementById('result-meta').textContent = total + ' jogadores · ' + times.length + ' times';
+
+    times.forEach(function(time, i) {
+      var delay = i * 60;
+      var card = document.createElement('div');
+      card.className = 'time-card tc-' + (i % 10);
+      card.style.animationDelay = delay + 'ms';
+
+      var hdr = document.createElement('div');
+      hdr.className = 'time-header';
+
+      var num = document.createElement('div');
+      num.className = 'time-num tn-' + (i % 10);
+      num.textContent = 'TIME ' + (i + 1);
+
+      var nm = document.createElement('div');
+      nm.className = 'time-name';
+      nm.textContent = '';
+
+      var cnt = document.createElement('div');
+      cnt.className = 'time-count';
+      cnt.textContent = time.length + ' jogadores';
+
+      hdr.appendChild(num);
+      hdr.appendChild(nm);
+      hdr.appendChild(cnt);
+      card.appendChild(hdr);
+
+      var body = document.createElement('div');
+      body.className = 'time-body';
+      time.forEach(function(jogador, k) {
+        var row = document.createElement('div');
+        row.className = 'jogador-row';
+        var n = document.createElement('div');
+        n.className = 'jog-num';
+        n.textContent = k + 1;
+        var name = document.createElement('div');
+        name.className = 'jog-name';
+        name.textContent = jogador;
+        row.appendChild(n);
+        row.appendChild(name);
+        body.appendChild(row);
+      });
+      card.appendChild(body);
+      c.appendChild(card);
+    });
+  }
+
+  function voltar() {
+    document.getElementById('results-section').style.display = 'none';
+    document.getElementById('form-section').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function compartilhar() {
+    if (!timesAtual.length) return;
+    var txt = '⚽ TIMES SORTEADOS ⚽\n\n';
+    timesAtual.forEach(function(t, i) {
+      txt += '🟢 TIME ' + (i + 1) + ':\n';
+      t.forEach(function(j, k) { txt += '  ' + (k + 1) + '. ' + j + '\n'; });
+      txt += '\n';
+    });
+    txt += '— Sorteador Futsal Pro';
+
+    if (navigator.share) {
+      navigator.share({ title: 'Times do Futsal', text: txt })
+        .catch(function(){});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(txt).then(function() {
+        document.getElementById('share-feedback').classList.add('show');
+      });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = txt;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      document.getElementById('share-feedback').classList.add('show');
+    }
+  }
+</script>
+</body>
+</html>
